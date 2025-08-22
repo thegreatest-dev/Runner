@@ -1,51 +1,78 @@
-# Welcome to your Expo app 👋
+# Errandly 📦
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Errandly is a modern mobile app built with **React Native (Expo)** that helps users seamlessly manage everyday errands and tasks.  
+The app is designed with a simple, intuitive UI and focuses on reliability, speed, and ease of use.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+- **User Authentication**  
+  - Secure email/OTP verification flow  
+  - Smooth signup and login experience  
 
-2. Start the app
+- **Task & Errand Management**  
+  - Create and manage errands with clear details  
+  - Track progress of errands in real time  
 
-   ```bash
-   npx expo start
-   ```
+- **Chat & Communication**  
+  - In-app messaging with assigned runners  
+  - Instant updates and notifications  
 
-In the output, you'll find options to open the app in a
+- **Payments & Wallet**  
+  - Add funds and manage wallet balance  
+  - Pay seamlessly for errands  
+  - Transaction history tracking  
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Order Tracking**  
+  - Real-time updates for errands  
+  - Simple status visualization (e.g., pending, in-progress, completed)  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **User-Friendly UI**  
+  - Clean OTP verification screen  
+  - Minimal design with accessible navigation  
+  - Responsive layouts optimized for mobile  
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 🚀 Tech Stack
 
-```bash
-npm run reset-project
-```
+- **React Native (Expo)** – core framework  
+- **React Navigation** – navigation and screen management  
+- **TypeScript/JavaScript** – typed logic for reliability  
+- **Custom UI Components** – polished and reusable design system  
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 📌 Project Status
 
-To learn more about developing your project with Expo, look at the following resources:
+🚧 Work in progress – Core UI screens are under development (e.g., OTP screen, login, wallet).  
+Upcoming: backend integration (Node.js, MongoDB), payment APIs, and push notifications.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 📖 Roadmap
 
-Join our community of developers creating universal apps.
+- [ ] Finalize authentication with backend  
+- [ ] Implement real-time chat  
+- [ ] Connect wallet with payment provider  
+- [ ] Deploy web version via Expo Web / Vercel  
+- [ ] Release beta on iOS and Android  
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-"# Runner" 
+---
+
+## 📸 Screenshots (Coming Soon)
+Preview images of OTP flow, home dashboard, and wallet screen.
+
+---
+
+## 🤝 Contributing
+
+Contributions will be welcome once the base version is live.  
+Stay tuned for guidelines!
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
