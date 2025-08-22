@@ -31,15 +31,17 @@ export default function DashboardScreen() {
 
   const [chatVisible, setChatVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [supportVisible, setSupportVisible] = useState(false);
   const pan = useRef(new Animated.Value(0)).current;
+  const panSupport = useRef(new Animated.Value(0)).current;
 
-  const handleServicePress = (key: string, route?: keyof AppStackParamList) => {
+  const handleServicePress = (key: string, route?: string) => {
     // show active state immediately
     setSelectedService(key);
     // wait a short moment so the active visual appears, then navigate (if provided)
     setTimeout(() => {
       if (route) {
-        navigation.navigate(route as any);
+        (navigation as any).navigate(route);
       }
       // clear active state after navigation/brief delay
       setTimeout(() => setSelectedService(null), 250);
@@ -67,9 +69,33 @@ export default function DashboardScreen() {
     })
   ).current;
 
+  const panResponderSupport = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          panSupport.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 120) {
+          Animated.timing(panSupport, { toValue: height, duration: 180, useNativeDriver: true }).start(() => {
+            panSupport.setValue(0);
+            setSupportVisible(false);
+          });
+        } else {
+          Animated.spring(panSupport, { toValue: 0, useNativeDriver: true, bounciness: 0 });
+        }
+      },
+    })
+  ).current;
+
   useEffect(() => {
     if (!chatVisible) {
       pan.setValue(0);
+    }
+    if (!supportVisible) {
+      panSupport.setValue(0);
     }
   }, [chatVisible, pan]);
 
@@ -82,12 +108,14 @@ export default function DashboardScreen() {
         resizeMode="contain"
       />
 
-      {/* Header Image */}
-      <Image
-        source={require('../../../assets/images/dambe.png')}
-        style={[styles.headerImage, { width: width, height: height * 0.2 }]}
-        resizeMode="cover"
-      />
+      {/* Header Image wrapped in a rounded mask so shadow is visible */}
+      <View style={[styles.headerMask, { width: width, height: height * 0.2 }]}> 
+        <Image
+          source={require('../../../assets/images/dambe.png')}
+          style={styles.headerImageInner}
+          resizeMode="cover"
+        />
+      </View>
 
       {/* Subtitle */}
       <Text style={styles.subtitle}>Services</Text>
@@ -110,7 +138,7 @@ export default function DashboardScreen() {
           <Text style={styles.serviceText}>Orders</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.serviceButton, selectedService === 'track' && styles.activeService]} onPress={() => handleServicePress('track')}>
+  <TouchableOpacity style={[styles.serviceButton, selectedService === 'track' && styles.activeService]} onPress={() => handleServicePress('track', 'TrackScreen')}>
           <Image source={require('../../../assets/icons/trck.png')} style={styles.icon} />
           <Text style={styles.serviceText}>Track</Text>
         </TouchableOpacity>
@@ -124,7 +152,7 @@ export default function DashboardScreen() {
           <Text style={styles.serviceText}>Chat with Runner</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.serviceButton, selectedService === 'support' && styles.activeService]} onPress={() => handleServicePress('support')}>
+  <TouchableOpacity style={[styles.serviceButton, selectedService === 'support' && styles.activeService]} onPress={() => { handleServicePress('support'); setSupportVisible(true); }}>
           <Image source={require('../../../assets/icons/support.png')} style={styles.icon} />
           <Text style={styles.serviceText}>Customer Support</Text>
         </TouchableOpacity>
@@ -219,6 +247,56 @@ export default function DashboardScreen() {
           </Animated.View>
         </View>
       </Modal>
+
+      {/* Support Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={supportVisible}
+        onRequestClose={() => setSupportVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              { transform: [{ translateY: panSupport }] },
+            ]}
+            {...panResponderSupport.panHandlers}
+          >
+            <View style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
+            </View>
+
+            <View style={styles.sheetHeaderRow}>
+              <Text style={styles.sheetTitle}>Customer Support</Text>
+              <View />
+            </View>
+
+            <View style={styles.separator} />
+
+            <View style={styles.sheetBody}>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>How can we help?</Text>
+                <Text style={styles.sectionText}>Choose an option to get quick help from our team.</Text>
+              </View>
+
+              <View style={styles.separator} />
+
+              <View style={styles.section}>
+                <TouchableOpacity style={styles.supportOption}>
+                  <Text style={styles.supportOptionText}>Report an issue</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.supportOption}>
+                  <Text style={styles.supportOptionText}>Billing & Payments</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.supportOption}>
+                  <Text style={styles.supportOptionText}>Other enquiries</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -237,19 +315,23 @@ const styles = StyleSheet.create({
   marginBottom: 6,
   marginLeft: 8,
   },
-  headerImage: {
-    width: width, // Dynamic width
-    height: height * 0.2, // Dynamic height
+  headerMask: {
     borderRadius: 20,
     marginBottom: 20,
     backgroundColor: '#FFFFFF',
-    // iOS soft shadow
+    // iOS shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    // Android soft shadow
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    // Android elevation
+    elevation: 14,
+    // ensure children are clipped to radius
+    overflow: 'hidden',
+  },
+  headerImageInner: {
+    width: '100%',
+    height: '100%',
   },
   subtitle: {
   fontSize: 16,
@@ -447,5 +529,22 @@ const styles = StyleSheet.create({
   fontSize: 22,
   color: '#666666',
   lineHeight: 22,
+  },
+  supportOption: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+  },
+  supportOptionText: {
+    fontSize: width * 0.042,
+    color: '#222',
+    fontWeight: '600',
   },
 });

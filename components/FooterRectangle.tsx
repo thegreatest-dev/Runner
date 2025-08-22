@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -8,6 +8,7 @@ export const FOOTER_HEIGHT = 61;
 
 const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScreen?: boolean; showProfile?: boolean; style?: any }) => {
   const navigation = useNavigation();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   return (
     <View style={[styles.footerRectangle, style]}>
@@ -18,28 +19,44 @@ const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScree
       )}
       {/* Left: profile avatar + name (only when explicitly requested) */}
       {showProfile ? (
-        <View style={styles.profileWrap}>
+        <TouchableOpacity style={styles.profileWrap} onPress={() => setMenuVisible(!menuVisible)} accessibilityLabel="Open profile menu">
           <Image source={require('../assets/icons/profile.png')} style={styles.profileIcon} />
           <View style={styles.profileNameWrap}>
             <View style={styles.profileBadge} />
-            <TouchableOpacity onPress={() => (navigation as any).navigate('Profile')}>
-              <View>
-                <Text style={styles.profileName}>Daniel Akani</Text>
-              </View>
-            </TouchableOpacity>
+            <View>
+              <Text style={styles.profileName}>Daniel Akani</Text>
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       ) : (
         <View />
       )}
 
       {/* Right: logout button (only when explicitly requested) */}
       {showProfile ? (
-        <TouchableOpacity style={styles.logoutWrap} onPress={() => console.log('Logout pressed')}>
+        <TouchableOpacity style={styles.logoutWrap} onPress={() => (navigation as any).replace('Login')}>
           <Image source={require('../assets/icons/logout.png')} style={styles.logoutIcon} />
         </TouchableOpacity>
       ) : (
         <View />
+      )}
+
+      {/* Profile popover */}
+      {menuVisible && showProfile && (
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.popoverOverlay}>
+            <View style={styles.popover}>
+              <View style={styles.popoverHeader}>
+                <Image source={require('../assets/icons/profile.png')} style={styles.popoverAvatar} />
+                <View style={{ marginLeft: 12 }}>
+                  <Text style={styles.popoverName}>Daniel Akani</Text>
+                  <Text style={styles.popoverEmail}>danielakin557@gmail.com</Text>
+                </View>
+              </View>
+              {/* Sign out removed per request */}
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
       )}
     </View>
   );
@@ -102,6 +119,45 @@ const styles = StyleSheet.create({
     height: 22,
     tintColor: '#666',
   },
+  popoverOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 70,
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+  },
+  popover: {
+    width: 260,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  popoverHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  popoverAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+  },
+  popoverName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
+  popoverEmail: {
+    fontSize: 12,
+    color: '#666',
+  },
+  // sign out option removed
 });
 
 export default FooterRectangle;

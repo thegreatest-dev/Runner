@@ -1,19 +1,21 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
-import { Dimensions, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
   Dashboard: undefined; // Add Dashboard to the stack param list
   App: undefined; // Add App to the stack param list
+  ForgetPassword: undefined;
 };
 
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList, 'Login'>>();
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -21,21 +23,32 @@ export default function LoginScreen() {
       <Text style={styles.title}>Let’s Get{'\n'}You Signed In!</Text>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#A9A9A9"
-        />
+        <View style={styles.inputRow}>
+          <Image source={require('../../../assets/icons/mail.png')} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#A9A9A9"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
       </View>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#A9A9A9"
-          secureTextEntry
-        />
-        <TouchableOpacity>
+        <View style={styles.inputRow}>
+          <Image source={require('../../../assets/icons/password.png')} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#A9A9A9"
+            secureTextEntry={!passwordVisible}
+          />
+          <TouchableOpacity onPress={() => setPasswordVisible(v => !v)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Image source={passwordVisible ? require('../../../assets/icons/eyeopen.png') : require('../../../assets/icons/eyeclose.png')} style={styles.eyeIcon} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
           <Text style={styles.forgotPassword}>Forgot password?</Text>
         </TouchableOpacity>
       </View>
@@ -88,13 +101,32 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
-  input: {
+  inputRow: {
     width: '100%',
     height: 50,
-    borderRadius: 10,
     backgroundColor: '#F0F0F0',
-    paddingHorizontal: 15,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  inputIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+    tintColor: '#A9A9A9',
+  },
+  input: {
+    flex: 1,
+    height: '100%',
     fontSize: 16,
+    color: '#111',
+  },
+  eyeIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 8,
+    tintColor: '#A9A9A9',
   },
   forgotPassword: {
     fontSize: 14,

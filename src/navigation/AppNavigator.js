@@ -3,7 +3,7 @@ import DashboardScreen from '../screens/Dashboard/DashboardScreen';
 import OrderRunnerScreen from '../screens/Order/OrderRunnerScreen';
 import OrderStatusScreen from '../screens/Order/OrderStatusScreen';
 import OrdersScreen from '../screens/Orders/OrdersScreen';
-import ProfileScreen from '../screens/Profile/ProfileScreen';
+import ProfileScreen from '../screens/Wallet/ProfileScreen';
 
 const Stack = createStackNavigator();
 
