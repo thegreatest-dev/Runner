@@ -1,15 +1,15 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -34,7 +34,7 @@ export default function ForgetPasswordScreen() {
     // Simulate API call to send reset link, then navigate to OTP screen
     setTimeout(() => {
       setLoading(false);
-      (navigation as any).navigate('OTPScreen', { email });
+      (navigation as any).navigate('OTPScreen', { email, next: 'ChangePassword' });
     }, 900);
   };
 
@@ -107,12 +107,10 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     marginVertical: 12,
-    // stronger drop shadow (iOS)
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
-    // stronger elevation for Android
     elevation: 6,
   },
   cardContent: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

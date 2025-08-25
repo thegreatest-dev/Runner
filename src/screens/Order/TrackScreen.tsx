@@ -1,4 +1,6 @@
 // TrackScreen.tsx
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Dimensions, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -7,22 +9,26 @@ const { width, height } = Dimensions.get('window');
 
 export default function TrackScreen() {
   const navigation = useNavigation();
+  const themeHook = useThemePreference();
+  const bgColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>TRACK</Text>
-      <View style={styles.titleLine} />
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}> 
+      <Text style={[styles.title, { color: textColor }]}>TRACK</Text>
+      <View style={[styles.titleLine, { backgroundColor: iconColor }]} />
 
       <View style={styles.centerContent}>
   <Image source={require('../../../assets/images/sandy2.png')} style={styles.illustration} />
         <Text style={styles.emptyText}>There’s nothing to track here</Text>
       </View>
 
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.backTiny} onPress={() => navigation.goBack()}>
-          <Image source={require('../../../assets/icons/arrowleft.png')} style={styles.backTinyIcon} />
-        </TouchableOpacity>
-      </View>
+      <View style={[styles.bottomBar, { backgroundColor: themeHook.preference === 'dark' ? '#111' : '#F0F0F0' }]}>
+            <TouchableOpacity style={styles.backTiny} onPress={() => navigation.goBack()}>
+              <Image source={require('../../../assets/icons/arrowleft.png')} style={[styles.backTinyIcon, { tintColor: iconColor }]} />
+            </TouchableOpacity>
+          </View>
     </SafeAreaView>
   );
 }

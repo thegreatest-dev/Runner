@@ -56,8 +56,9 @@ export default function OTPScreen() {
         return;
       }
 
-      setLoading(false);
-      (navigation as any).navigate('OTPSuccess');
+  setLoading(false);
+  const next = (route.params as any)?.next || 'Login';
+  (navigation as any).navigate('OTPSuccess', { next });
     }, 900);
   };
 

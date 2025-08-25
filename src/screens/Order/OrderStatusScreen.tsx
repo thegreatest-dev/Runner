@@ -1,20 +1,37 @@
-import React from 'react';
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
 export default function OrderStatusScreen({ navigation }: any) {
+
+	const themeHook = useThemePreference();
+	const bgColor = useThemeColor({}, 'background');
+	const textColor = useThemeColor({}, 'text');
+	const tint = useThemeColor({}, 'tint');
+
+	useEffect(() => {
+		const t = setTimeout(() => {
+			// after 10 seconds, navigate to OrderAcceptedScreen
+			(navigation as any).replace('OrderAcceptedScreen');
+		}, 10000);
+
+		return () => clearTimeout(t);
+	}, [navigation]);
+
 	return (
-		<View style={styles.container}>
-			<View style={styles.centerContent}>
-				<ActivityIndicator size={width * 0.12} color="#27ae60" style={styles.spinner} />
-				<Text style={styles.statusText}>Looking for an available runner</Text>
-				<TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-					<Text style={styles.cancelButtonText}>Cancel Order</Text>
-				</TouchableOpacity>
+			<View style={[styles.container, { backgroundColor: bgColor }]}>
+				<View style={styles.centerContent}>
+					<ActivityIndicator size={width * 0.12} color={tint} style={styles.spinner} />
+					<Text style={[styles.statusText, { color: textColor }]}>Looking for an available runner</Text>
+					<TouchableOpacity style={[styles.cancelButton, { backgroundColor: tint }]} onPress={() => navigation.goBack()}>
+						<Text style={styles.cancelButtonText}>Cancel Order</Text>
+					</TouchableOpacity>
+				</View>
+				<View style={[styles.bottomCircle, { backgroundColor: themeHook.preference === 'dark' ? '#0f3721' : '#B9F3D6' }]} />
 			</View>
-			<View style={styles.bottomCircle} />
-		</View>
 	);
 }
 

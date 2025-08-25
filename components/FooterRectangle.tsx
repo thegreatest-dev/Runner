@@ -1,30 +1,55 @@
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-export const FOOTER_HEIGHT = 61;
+export const FOOTER_HEIGHT = 64;
 
-const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScreen?: boolean; showProfile?: boolean; style?: any }) => {
+type FooterProps = {
+  isOrdersScreen?: boolean;
+  showProfile?: boolean;
+  style?: any;
+  position?: 'absolute' | 'relative';
+  showBack?: boolean;
+  background?: string;
+  paddingHorizontal?: number;
+};
+
+const FooterRectangle = ({ isOrdersScreen, showProfile, style, position = 'absolute', showBack = true, background, paddingHorizontal = 12 }: FooterProps) => {
   const navigation = useNavigation();
   const [menuVisible, setMenuVisible] = useState(false);
+  const themeHook = useThemePreference();
+  const bg = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
+
+  const defaultFooterBg = background ?? (themeHook.preference === 'dark' ? '#153f33' : '#DFF7EF');
+
+  const containerStyle = [
+    styles.footerRectangle,
+    { backgroundColor: defaultFooterBg, paddingHorizontal, paddingVertical: (FOOTER_HEIGHT - 40) / 2 },
+    position === 'absolute' ? styles.footerAbsolute : styles.footerRelative,
+    style,
+  ];
 
   return (
-    <View style={[styles.footerRectangle, style]}>
-      {isOrdersScreen && (
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Image source={require('../assets/icons/arrowleft.png')} style={styles.backIcon} />
+  <View style={containerStyle}>
+      {isOrdersScreen && showBack && (
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Go back">
+          <Image source={require('../assets/icons/arrowleft.png')} style={[styles.backIcon, { tintColor: themeHook.preference === 'dark' ? '#FFFFFF' : '#08302b' }]} />
         </TouchableOpacity>
       )}
       {/* Left: profile avatar + name (only when explicitly requested) */}
       {showProfile ? (
-        <TouchableOpacity style={styles.profileWrap} onPress={() => setMenuVisible(!menuVisible)} accessibilityLabel="Open profile menu">
+          <TouchableOpacity style={styles.profileWrap} onPress={() => setMenuVisible(!menuVisible)} accessibilityLabel="Open profile menu">
           <Image source={require('../assets/icons/profile.png')} style={styles.profileIcon} />
           <View style={styles.profileNameWrap}>
             <View style={styles.profileBadge} />
             <View>
-              <Text style={styles.profileName}>Daniel Akani</Text>
+              <Text style={[styles.profileName, { color: textColor }]}>Daniel Akani</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -35,7 +60,7 @@ const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScree
       {/* Right: logout button (only when explicitly requested) */}
       {showProfile ? (
         <TouchableOpacity style={styles.logoutWrap} onPress={() => (navigation as any).replace('Login')}>
-          <Image source={require('../assets/icons/logout.png')} style={styles.logoutIcon} />
+          <Image source={require('../assets/icons/logout.png')} style={[styles.logoutIcon, { tintColor: iconColor }]} />
         </TouchableOpacity>
       ) : (
         <View />
@@ -48,12 +73,12 @@ const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScree
             <View style={styles.popover}>
               <View style={styles.popoverHeader}>
                 <Image source={require('../assets/icons/profile.png')} style={styles.popoverAvatar} />
-                <View style={{ marginLeft: 12 }}>
-                  <Text style={styles.popoverName}>Daniel Akani</Text>
-                  <Text style={styles.popoverEmail}>danielakin557@gmail.com</Text>
-                </View>
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={[styles.popoverName, { color: textColor }]}>Daniel Akani</Text>
+                    <Text style={[styles.popoverEmail, { color: textColor }]}>danielakin557@gmail.com</Text>
+                  </View>
               </View>
-              {/* Sign out removed per request */}
+              {/* Sign out */}
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -64,23 +89,39 @@ const FooterRectangle = ({ isOrdersScreen, showProfile, style }: { isOrdersScree
 
 const styles = StyleSheet.create({
   footerRectangle: {
-    position: 'absolute',
-    bottom: 0,
+    // base styles shared between absolute and relative modes
     width: '100%',
-    height: 61,
-    backgroundColor: '#F0F0F0',
+    height: FOOTER_HEIGHT,
+    backgroundColor: '#DAF1DE',
     borderTopRightRadius: 15,
     borderTopLeftRadius: 15,
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  paddingHorizontal: 20,
+  paddingHorizontal: 12,
+  },
+  footerAbsolute: {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 50,
+  elevation: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: -4 },
+  shadowOpacity: 0.12,
+  shadowRadius: 8,
+  },
+  footerRelative: {
+    position: 'relative',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+  width: 40,
+  height: 40,
+  justifyContent: 'center',
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  marginLeft: 0,
   },
   backIcon: {
   width: 15,

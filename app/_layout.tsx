@@ -7,14 +7,23 @@ import 'react-native-reanimated';
 import AppNavigator from '../src/navigation/AppNavigator';
 import AuthNavigator from '../src/navigation/AuthNavigator';
 
+import { ThemePreferenceProvider, useThemePreference } from '@/context/ThemePreference';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 const RootStack = createStackNavigator();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function InnerRoot() {
+  const system = useColorScheme();
+  const { preference } = useThemePreference();
+  const colorScheme = preference === 'system' ? system : preference;
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    // Poppins family (we have Poppins-SemiBold.ttf at assets/fonts and Poppins folder)
+    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Regular': require('../assets/fonts/Poppins/Poppins-Regular.ttf'),
+    // Inter as fallback for other UI text
+    'Inter-Regular': require('../assets/fonts/Inter-Regular.ttf'),
   });
 
   if (!loaded) {
@@ -29,5 +38,13 @@ export default function RootLayout() {
       </RootStack.Navigator>
       <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemePreferenceProvider>
+      <InnerRoot />
+    </ThemePreferenceProvider>
   );
 }

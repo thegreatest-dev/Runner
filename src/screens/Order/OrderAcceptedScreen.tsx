@@ -1,28 +1,34 @@
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function OrderAcceptedScreen({ navigation }: any) {
+  const themeHook = useThemePreference();
+  const bgColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const tint = useThemeColor({}, 'tint');
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bgColor }] }>
       <View style={styles.profileSection}>
         <Image
-          source={require('../../../assets/images/sandy.png')} // Replace with runner's image
+          source={require('../../../assets/icons/profile.png')} // Replace with runner's image
           style={styles.profileImage}
         />
-        <Text style={styles.runnerName}>David Alfredo</Text>
+        <Text style={[styles.runnerName, { color: textColor }]}>David Alfredo</Text>
       </View>
-      <Text style={styles.statusText}>Runner has accepted your order</Text>
+      <Text style={[styles.statusText, { color: textColor }]}>Runner has accepted your order</Text>
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('TrackScreen')}>
-          <Text style={styles.buttonText}>Track Runner</Text>
+  <TouchableOpacity style={[styles.actionButton, { backgroundColor: tint }]} onPress={() => navigation.navigate('OngoingOrders')}>
+          <Text style={[styles.buttonText, { color: '#fff' }]}>Track Runner</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('ChatScreen')}>
-          <Text style={styles.buttonText}>Chat</Text>
+        <TouchableOpacity style={[styles.actionButton, { backgroundColor: tint }]} onPress={() => (navigation as any).navigate('Dashboard', { openChat: true })}>
+          <Text style={[styles.buttonText, { color: '#fff' }]}>Chat</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.bottomCircle} />
+      <View style={[styles.bottomCircle, { backgroundColor: themeHook.preference === 'dark' ? '#0f3721' : '#B9F3D6' }]} />
     </View>
   );
 }

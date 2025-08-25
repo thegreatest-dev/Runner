@@ -1,37 +1,73 @@
-import { useNavigation } from '@react-navigation/native';
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Image,
   Modal,
   PanResponder,
+  Animated as RNAnimated,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import FooterRectangle from '../../../components/FooterRectangle';
+import FooterRectangle, { FOOTER_HEIGHT } from '../../../components/FooterRectangle';
 
 const { width, height } = Dimensions.get('window');
+// Responsive scale (clamped) based on a sensible base width (iPhone 12/13 ~390).
+const BASE_WIDTH = 390;
+const SCALE = Math.min(Math.max(width / BASE_WIDTH, 0.85), 1.15);
+const logoFontSize = Math.round(34 * SCALE);
+const titleFontSize = Math.round(Math.max(16, Math.min(26, width * 0.055 * SCALE)));
+const serviceIconSize = Math.round(48 * SCALE);
+const pillWidth = Math.round(51 * SCALE);
+const pillHeight = Math.round(24 * SCALE);
+const pillKnobSize = Math.round(21 * SCALE);
+const iconCircleSize = Math.round(20 * SCALE);
+const pillIconSize = Math.round(12 * SCALE);
 
 type AppStackParamList = {
   Dashboard: undefined;
   OrderRunner: undefined;
   Orders: undefined;
   Profile: undefined;
+  Wallet: undefined;
 };
 
 export default function DashboardScreen() {
   const navigation = useNavigation<StackNavigationProp<AppStackParamList, 'Dashboard'>>();
+  const route = useRoute();
 
   const [chatVisible, setChatVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [supportVisible, setSupportVisible] = useState(false);
+  // theme toggle
+  const themeHook = useThemePreference();
+  const bgColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
+  // service button backgrounds should adapt to theme so text stays readable
+  const serviceBg = themeHook.preference === 'dark' ? '#1B1B1B' : '#FFFFFF';
+  const activeBg = themeHook.preference === 'dark' ? '#163823' : '#E6F7ED';
+  const serviceBorderColor = themeHook.preference === 'dark' ? 'transparent' : '#EEE';
+  const rnAnimRef = useRef(new RNAnimated.Value(0));
+  const rnAnim = rnAnimRef.current;
+  useEffect(() => {
+    // Animate knob to correct position based on scaled pill sizes
+    const horizontalPadding = Math.round(5 * SCALE);
+    const halfSpace = (pillWidth - pillKnobSize) / 2;
+    const distance = Math.max(6, Math.round(halfSpace - horizontalPadding));
+    const to = themeHook.preference === 'dark' ? distance : -distance;
+    RNAnimated.timing(rnAnim, { toValue: to, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [themeHook.preference]);
   const pan = useRef(new Animated.Value(0)).current;
   const panSupport = useRef(new Animated.Value(0)).current;
 
@@ -99,67 +135,166 @@ export default function DashboardScreen() {
     }
   }, [chatVisible, pan]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Logo */}
-      <Image
-        source={require('../../../assets/icons/Logo1.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+  // Open chat bottom sheet when navigated to Dashboard with { openChat: true }
+  useEffect(() => {
+    try {
+      const open = (route.params as any)?.openChat;
+      if (open) {
+        setChatVisible(true);
+        // clear param so it doesn't open again
+        setTimeout(() => {
+          (navigation as any).setParams({ openChat: false });
+        }, 50);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [route.params]);
 
-      {/* Header Image wrapped in a rounded mask so shadow is visible */}
-      <View style={[styles.headerMask, { width: width, height: height * 0.2 }]}> 
-        <Image
-          source={require('../../../assets/images/dambe.png')}
-          style={styles.headerImageInner}
-          resizeMode="cover"
-        />
+  return (
+  <SafeAreaView style={[styles.container, { backgroundColor: bgColor, paddingBottom: FOOTER_HEIGHT + 16 }] }>
+      <View style={styles.headerRow}>
+  {/* Logo spelled out */}
+  <Text style={[styles.logoText, { color: textColor }]}>Errandly</Text>
+
+        {/* Dark mode toggle (custom pill) */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.pillWrap}
+          onPress={() => {
+            if (!themeHook.hydrated) return;
+            themeHook.setPreference(themeHook.preference === 'dark' ? 'light' : 'dark');
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle dark mode"
+          accessibilityState={{ disabled: !themeHook.hydrated, selected: themeHook.preference === 'dark' }}
+          hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+        >
+          <View style={[styles.pillBackground, themeHook.preference === 'dark' ? styles.pillDark : styles.pillLight]}>
+            <View style={styles.iconCircleLight}>
+              <Image source={require('../../../assets/icons/light.png')} style={styles.pillIconInner} />
+            </View>
+
+            <View style={styles.iconCircleDark}>
+              <Image source={require('../../../assets/icons/dark.png')} style={styles.pillIconInner} />
+            </View>
+
+            <RNAnimated.View style={[styles.pillKnob, { transform: [{ translateX: rnAnim }] }]} />
+          </View>
+        </TouchableOpacity>
       </View>
 
-      {/* Subtitle */}
-      <Text style={styles.subtitle}>Services</Text>
+      {/* Header Image: use an outer shadow wrapper and an inner clipped mask so
+          the rounded corners are preserved while the shadow remains visible. Also
+          use full-width relative sizing so the container respects horizontal padding. */}
+      <View style={[styles.headerShadowWrap, { height: height * 0.26 }]}> 
+        <View style={[styles.headerMask, { height: '100%' }]}> 
+          <Image
+            source={require('../../../assets/images/dambe.png')}
+            style={styles.headerImageInner}
+            resizeMode="cover"
+          />
+        </View>
+      </View>
+
+  {/* Title */}
+  <Text style={[styles.title, { color: textColor }]}>Services</Text>
+  <View style={[styles.titleLine, { backgroundColor: iconColor }]} />
 
       {/* Services Row 1 */}
       <View style={styles.servicesContainer}>
         <TouchableOpacity
-          style={[styles.serviceButton, selectedService === 'order' && styles.activeService]}
+          style={[
+            styles.serviceButton,
+            { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+            selectedService === 'order' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+          ]}
           onPress={() => handleServicePress('order', 'OrderRunner')}
+          accessibilityRole="button"
+          accessibilityLabel="Order a runner"
+          hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
         >
-          <Image source={require('../../../assets/icons/order.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Order a Runner</Text>
+          <Image source={require('../../../assets/icons/order.png')} style={[styles.icon, { tintColor: themeHook.preference === 'dark' ? iconColor : undefined }]} />
+          <Text style={[styles.serviceText, { color: textColor }]}>Order a Runner</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.serviceButton, selectedService === 'orders' && styles.activeService]}
+          style={[
+            styles.serviceButton,
+            { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+            selectedService === 'orders' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+          ]}
           onPress={() => handleServicePress('orders', 'Orders')}
+          accessibilityRole="button"
+          accessibilityLabel="View orders"
+          hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
         >
-          <Image source={require('../../../assets/icons/orders.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Orders</Text>
+          <Image source={require('../../../assets/icons/orders.png')} style={[styles.icon, { tintColor: themeHook.preference === 'dark' ? iconColor : undefined }]} />
+          <Text style={[styles.serviceText, { color: textColor }]}>Orders</Text>
         </TouchableOpacity>
 
-  <TouchableOpacity style={[styles.serviceButton, selectedService === 'track' && styles.activeService]} onPress={() => handleServicePress('track', 'TrackScreen')}>
-          <Image source={require('../../../assets/icons/trck.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Track</Text>
+  <TouchableOpacity
+    style={[
+      styles.serviceButton,
+      { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+      selectedService === 'track' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+    ]}
+    onPress={() => handleServicePress('track', 'TrackScreen')}
+    accessibilityRole="button"
+    accessibilityLabel="Track your runner"
+    hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+  >
+          <Image source={require('../../../assets/icons/trck.png')} style={[styles.icon, { tintColor: themeHook.preference === 'dark' ? iconColor : undefined }]} />
+          <Text style={[styles.serviceText, { color: textColor }]}>Track</Text>
         </TouchableOpacity>
       </View>
 
       {/* Services Row 2 */}
       <View style={styles.servicesContainer}>
         {/* Chat with Runner */}
-  <TouchableOpacity style={[styles.serviceButton, selectedService === 'chat' && styles.activeService]} onPress={() => { handleServicePress('chat'); setChatVisible(true); }}>
-          <Image source={require('../../../assets/icons/chat.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Chat with Runner</Text>
+  <TouchableOpacity
+    style={[
+      styles.serviceButton,
+      { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+      selectedService === 'chat' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+    ]}
+    onPress={() => { handleServicePress('chat'); setChatVisible(true); }}
+    accessibilityRole="button"
+    accessibilityLabel="Chat with runner"
+    hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+  >
+          <Image source={require('../../../assets/icons/chat.png')} style={[styles.icon, { tintColor: themeHook.preference === 'dark' ? iconColor : undefined }]} />
+          <Text style={[styles.serviceText, { color: textColor }]}>Chat with Runner</Text>
         </TouchableOpacity>
 
-  <TouchableOpacity style={[styles.serviceButton, selectedService === 'support' && styles.activeService]} onPress={() => { handleServicePress('support'); setSupportVisible(true); }}>
-          <Image source={require('../../../assets/icons/support.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Customer Support</Text>
+  <TouchableOpacity
+    style={[
+      styles.serviceButton,
+      { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+      selectedService === 'support' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+    ]}
+    onPress={() => { handleServicePress('support'); setSupportVisible(true); }}
+    accessibilityRole="button"
+    accessibilityLabel="Customer support"
+    hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+  >
+          <Image source={require('../../../assets/icons/support.png')} style={[styles.icon, { tintColor: themeHook.preference === 'dark' ? iconColor : undefined }]} />
+          <Text style={[styles.serviceText, { color: textColor }]}>Customer Support</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.serviceButton, selectedService === 'wallet' && styles.activeService]} onPress={() => handleServicePress('wallet')}>
+        <TouchableOpacity
+          style={[
+            styles.serviceButton,
+            { backgroundColor: serviceBg, borderColor: serviceBorderColor },
+            selectedService === 'wallet' && { backgroundColor: activeBg, borderColor: '#2EA36B' },
+          ]}
+          onPress={() => handleServicePress('wallet', 'Wallet')}
+          accessibilityRole="button"
+          accessibilityLabel="Wallet"
+          hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+        >
           <Image source={require('../../../assets/icons/wallet.png')} style={styles.icon} />
-          <Text style={styles.serviceText}>Wallet</Text>
+          <Text style={[styles.serviceText, { color: textColor }]}>Wallet</Text>
         </TouchableOpacity>
       </View>
 
@@ -181,7 +316,7 @@ export default function DashboardScreen() {
             {...panResponder.panHandlers}
           >
             {/* Drag handle */}
-            <View style={styles.dragHandleContainer}>
+            <View style={styles.dragHandleContainer} {...panResponder.panHandlers}>
               <View style={styles.dragHandle} />
             </View>
 
@@ -194,8 +329,10 @@ export default function DashboardScreen() {
                 <View style={styles.onlineDot} />
                 <TouchableOpacity
                   accessibilityLabel="Close chat"
+                  accessibilityRole="button"
                   onPress={() => setChatVisible(false)}
                   style={styles.smallCloseArea}
+                  hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
                 >
                   <Text style={styles.smallCloseText}>✕</Text>
                 </TouchableOpacity>
@@ -263,7 +400,7 @@ export default function DashboardScreen() {
             ]}
             {...panResponderSupport.panHandlers}
           >
-            <View style={styles.dragHandleContainer}>
+            <View style={styles.dragHandleContainer} {...panResponderSupport.panHandlers}>
               <View style={styles.dragHandle} />
             </View>
 
@@ -308,6 +445,13 @@ const styles = StyleSheet.create({
   paddingHorizontal: 20,
   paddingTop: 18,
   },
+  headerRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  width: '100%',
+  marginBottom: Math.round(6 * SCALE),
+  },
   logo: {
   width: 112,
   height: 112,
@@ -315,10 +459,28 @@ const styles = StyleSheet.create({
   marginBottom: 6,
   marginLeft: 8,
   },
-  headerMask: {
-    borderRadius: 20,
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
+  logoText: {
+  fontSize: logoFontSize,
+  // Use Poppins SemiBold for the Errandly header; ensure the font is loaded in the app
+  fontFamily: 'Poppins-SemiBold',
+  fontWeight: '600',
+    marginLeft: 8,
+    marginBottom: 6,
+  },
+  toggleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    color: '#333',
+    marginRight: 6,
+  },
+  // outer wrapper that provides the shadow without clipping it
+  headerShadowWrap: {
+    width: '100%',
+    marginBottom: Math.round(20 * SCALE),
     // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
@@ -326,6 +488,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     // Android elevation
     elevation: 14,
+  },
+  // inner mask clips the image to rounded corners
+  headerMask: {
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     // ensure children are clipped to radius
     overflow: 'hidden',
   },
@@ -340,6 +507,95 @@ const styles = StyleSheet.create({
   marginLeft: 10,
   fontWeight: '600',
   },
+  title: {
+  // Slightly smaller and lighter than before
+  fontSize: Math.max(14, Math.round(titleFontSize * 0.85)),
+  fontWeight: '600',
+  marginBottom: width * 0.02,
+  alignSelf: 'flex-start',
+  color: '#222',
+  },
+  titleLine: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#BDBDBD',
+  marginBottom: Math.round(width * 0.04),
+  },
+  pillWrap: {
+  paddingHorizontal: Math.round(3 * SCALE),
+  paddingVertical: Math.round(1 * SCALE),
+  },
+  pillBackground: {
+  width: pillWidth,
+  height: pillHeight,
+  borderRadius: 999,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: Math.round(5 * SCALE),
+  position: 'relative',
+  // subtle shadow for the pill
+  elevation: 3,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.06,
+  shadowRadius: 4,
+  },
+  pillDark: {
+    backgroundColor: '#111',
+  },
+  pillLight: {
+  backgroundColor: '#fff',
+  borderWidth: 1,
+  borderColor: '#EEE',
+  },
+  pillIconLeft: {
+  width: 12,
+  height: 12,
+    tintColor: undefined,
+  },
+  pillIconRight: {
+  width: 12,
+  height: 12,
+  },
+  pillIconInner: {
+    width: pillIconSize,
+    height: pillIconSize,
+    resizeMode: 'contain',
+  },
+  iconCircleLight: {
+    width: iconCircleSize,
+    height: iconCircleSize,
+    borderRadius: iconCircleSize / 2,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: Math.round(2 * SCALE),
+  },
+  iconCircleDark: {
+    width: iconCircleSize,
+    height: iconCircleSize,
+    borderRadius: iconCircleSize / 2,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Math.round(2 * SCALE),
+  },
+  pillKnob: {
+  position: 'absolute',
+  width: pillKnobSize,
+  height: pillKnobSize,
+  borderRadius: pillKnobSize / 2,
+  backgroundColor: '#fff',
+  top: Math.round(1.5 * SCALE),
+  left: '50%',
+  marginLeft: -pillKnobSize / 2,
+  elevation: 6,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.12,
+  shadowRadius: 3,
+  },
   servicesContainer: {
   flexDirection: 'row',
   justifyContent: 'space-between',
@@ -348,11 +604,11 @@ const styles = StyleSheet.create({
   serviceButton: {
   flex: 1,
   alignItems: 'center',
-  paddingVertical: 14,
-  paddingHorizontal: 8,
+  paddingVertical: Math.round(10 * SCALE),
+  paddingHorizontal: Math.round(6 * SCALE),
   borderRadius: 12,
   backgroundColor: '#FFFFFF',
-  marginHorizontal: 6,
+  marginHorizontal: Math.round(6 * SCALE),
   elevation: 3,
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
@@ -365,12 +621,12 @@ const styles = StyleSheet.create({
   borderColor: '#2EA36B',
   },
   icon: {
-  width: 48,
-  height: 48,
-  marginBottom: 8,
+  width: serviceIconSize,
+  height: serviceIconSize,
+  marginBottom: Math.round(8 * SCALE),
   },
   serviceText: {
-  fontSize: width * 0.034,
+  fontSize: Math.round(width * 0.034 * SCALE),
   textAlign: 'center',
   fontWeight: '600',
   },
@@ -420,7 +676,11 @@ const styles = StyleSheet.create({
   },
   dragHandleContainer: {
     alignItems: 'center',
-    paddingVertical: 8,
+    // Increase the vertical touch area so Android users can easily start a drag
+    paddingVertical: Math.round(12 * SCALE),
+    minHeight: Math.round(44 * SCALE),
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   dragHandle: {
     width: 44,
@@ -445,9 +705,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   smallCloseArea: {
-    marginLeft: 8,
-    padding: 6,
-    borderRadius: 12,
+  marginLeft: 8,
+  padding: 6,
+  borderRadius: 12,
+  minWidth: 36,
+  minHeight: 36,
+  alignItems: 'center',
+  justifyContent: 'center',
   },
   smallCloseText: {
     fontSize: 14,

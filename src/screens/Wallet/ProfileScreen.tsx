@@ -1,28 +1,32 @@
 import { useNavigation } from '@react-navigation/native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const bg = useThemeColor({}, 'background');
+  const text = useThemeColor({}, 'text');
+  const subtle = useThemeColor({}, 'icon');
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { backgroundColor: bg }]}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Profile</Text>
+          <Text style={[styles.title, { color: text }]}>Profile</Text>
         </View>
 
         <View style={styles.card}>
           <Image source={require('../../../assets/icons/profile.png')} style={styles.avatar} />
           <View style={styles.info}>
-            <Text style={styles.name}>Daniel Akin</Text>
-            <Text style={styles.email}>danielakin557@gmail.com</Text>
+            <Text style={[styles.name, { color: text }]}>Daniel Akin</Text>
+            <Text style={[styles.email, { color: subtle }]}>danielakin557@gmail.com</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.logout} onPress={() => (navigation as any).replace('Login')}>
           <Image source={require('../../../assets/icons/logout.png')} style={styles.logoutIcon} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={[styles.logoutText, { color: '#d23f31' /* keep emphasis color */ }]}>Logout</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

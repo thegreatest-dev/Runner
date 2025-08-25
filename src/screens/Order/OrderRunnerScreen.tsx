@@ -1,5 +1,8 @@
+import { useThemePreference } from '@/context/ThemePreference';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React, { useRef, useState } from 'react';
 import { Animated, Dimensions, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import FooterRectangle from '../../../components/FooterRectangle';
 // Footer removed for this screen
 
 const { width } = Dimensions.get('window');
@@ -11,6 +14,11 @@ type Item = {
 };
 
 export default function OrderRunnerScreen() {
+  const themeHook = useThemePreference();
+  const bgColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
+  const surfaceBg = themeHook.preference === 'dark' ? '#1B1B1B' : '#FFFFFF';
   const [items, setItems] = useState<Item[]>([]);
   const [newItem, setNewItem] = useState<Item>({ id: 0, item: '', amount: '' });
   const [address, setAddress] = useState('');
@@ -56,23 +64,21 @@ export default function OrderRunnerScreen() {
   const total = subtotal + deliveryFee + serviceFee;
 
   return (
-    <SafeAreaView style={styles.root}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollContainer}
+    <SafeAreaView style={[styles.root, { backgroundColor: bgColor }]}>
+  <ScrollView 
+    contentContainerStyle={[styles.scrollContainer, { backgroundColor: bgColor }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.container}>
-          <TouchableOpacity style={styles.pageBack} onPress={() => navigation.goBack()}>
-            <Image source={require('../../../assets/icons/arrowleft.png')} style={styles.pageBackIcon} />
-          </TouchableOpacity>
-          <Text style={styles.title}>ORDER A RUNNER</Text>
-          <View style={styles.titleLine} />
+  <View style={[styles.container, { backgroundColor: bgColor }]}> 
+          <Text style={[styles.title, { color: textColor }]}>ORDER A RUNNER</Text>
+          <View style={[styles.titleLine, { backgroundColor: iconColor }]} />
           {/* Address */}
-          <View style={styles.addressContainer}>
-            <Image source={require('../../../assets/icons/search.png')} style={styles.searchIcon} />
+          <View style={[styles.addressContainer, { backgroundColor: surfaceBg }]}> 
+            <Image source={require('../../../assets/icons/search.png')} style={[styles.searchIcon, { tintColor: iconColor }]} />
             <TextInput 
-              style={styles.addressInput} 
+              style={[styles.addressInput, { color: textColor }]} 
               placeholder="Enter a new address"
+              placeholderTextColor={iconColor}
               value={address}
               onChangeText={setAddress}
             />
@@ -83,14 +89,14 @@ export default function OrderRunnerScreen() {
               <TextInput 
                 style={styles.itemInput} 
                 placeholder="Item" 
-                placeholderTextColor="#777"
+                placeholderTextColor={iconColor}
                 value={newItem.item}
                 onChangeText={(text) => setNewItem({ ...newItem, item: text })}
               />
               <TextInput 
                 style={styles.amountInput} 
                 placeholder="Amount" 
-                placeholderTextColor="#777"
+                placeholderTextColor={iconColor}
                 value={newItem.amount}
                 onChangeText={(text) => setNewItem({ ...newItem, amount: text })}
                 keyboardType="numeric"
@@ -98,7 +104,7 @@ export default function OrderRunnerScreen() {
               {/* quantity removed */}
             </View>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={addItem}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: themeHook.preference === 'dark' ? '#2E8B57' : '#4CAF50' }]} onPress={addItem}>
             <Text style={styles.addButtonText}>+ Add</Text>
           </TouchableOpacity>
           {items.length > 0 && (
@@ -117,13 +123,13 @@ export default function OrderRunnerScreen() {
             accessible={true}
             accessibilityLabel="Leave a note for the runner"
           >
-            <View style={styles.noteSeparator} />
+              <View style={[styles.noteSeparator, { backgroundColor: iconColor }]} />
             <View style={styles.noteRow}>
-              <Image source={require('../../../assets/icons/runner.png')} style={styles.noteIcon} />
+              <Image source={require('../../../assets/icons/runner.png')} style={[styles.noteIcon, { tintColor: iconColor }]} />
               <TextInput
-                style={styles.noteInlineInput}
+                style={[styles.noteInlineInput, { color: textColor }]}
                 placeholder="Leave a note for the runner"
-                placeholderTextColor="#6B6B6B"
+                placeholderTextColor={iconColor}
                 value={note}
                 onChangeText={setNote}
                 multiline={false}
@@ -140,18 +146,18 @@ export default function OrderRunnerScreen() {
                 disabled={note.trim().length === 0}
                 accessibilityLabel="Send note"
               >
-                <Image source={require('../../../assets/icons/send.png')} style={styles.sendIcon} />
+                <Image source={require('../../../assets/icons/send.png')} style={[styles.sendIcon, { tintColor: iconColor }]} />
               </AnimatedTouchable>
             </View>
           </View>
           {/* Payment Summary Header (full-width light gray bar) */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>Payment Summary</Text>
+          <View style={[styles.sectionHeader, { backgroundColor: themeHook.preference === 'dark' ? '#111' : '#F0F0F0' }]}>
+            <Text style={[styles.sectionHeaderText, { color: textColor }]}>Payment Summary</Text>
           </View>
-          <View style={styles.paymentSummary}>
+          <View style={[styles.paymentSummary, { backgroundColor: surfaceBg }]}>
             <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Sub-total ({items.length} items)</Text>
-              <Text style={styles.paymentValue}>₦{subtotal.toFixed(2)}</Text>
+              <Text style={[styles.paymentLabel, { color: iconColor }]}>Sub-total ({items.length} items)</Text>
+              <Text style={[styles.paymentValue, { color: textColor }]}>₦{subtotal.toFixed(2)}</Text>
             </View>
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>Delivery Fee</Text>
@@ -167,7 +173,7 @@ export default function OrderRunnerScreen() {
             </View>
           </View>
           {/* Payment Method */}
-          <Text style={styles.paymentMethodTitle}>Payment Method</Text>
+          <Text style={[styles.paymentMethodTitle, { color: textColor }]}>Payment Method</Text>
           <View style={styles.paymentMethods}>
             <TouchableOpacity 
               style={[styles.paymentOption, selectedPayment === 'online' && styles.selectedPaymentOption]}
@@ -175,9 +181,9 @@ export default function OrderRunnerScreen() {
             >
               <Image 
                 source={require('../../../assets/icons/web.png')} 
-                style={styles.paymentIcon} 
+                style={[styles.paymentIcon, { tintColor: iconColor }]} 
               />
-              <Text style={styles.paymentOptionText}>Pay online</Text>
+              <Text style={[styles.paymentOptionText, { color: textColor }]}>Pay online</Text>
               <View style={[styles.radioButton, selectedPayment === 'online' && styles.radioButtonSelected]} />
             </TouchableOpacity>
             <TouchableOpacity 
@@ -186,18 +192,22 @@ export default function OrderRunnerScreen() {
             >
               <Image 
                 source={require('../../../assets/icons/wallet.png')} 
-                style={styles.paymentIcon} 
+                style={[styles.paymentIcon, { tintColor: iconColor }]} 
               />
-              <Text style={styles.paymentOptionText}>Wallet</Text>
+              <Text style={[styles.paymentOptionText, { color: textColor }]}>Wallet</Text>
               <View style={[styles.radioButton, selectedPayment === 'wallet' && styles.radioButtonSelected]} />
             </TouchableOpacity>
           </View>
           {/* Place Order */}
-          <TouchableOpacity style={styles.placeOrderButton} onPress={() => navigation.navigate('OrderStatusScreen')}>
+          <TouchableOpacity style={[styles.placeOrderButton, { backgroundColor: themeHook.preference === 'dark' ? '#2E8B57' : '#4CAF50' }]} onPress={() => navigation.navigate('OrderStatusScreen')}>
             <Text style={styles.placeOrderText}>Place Order</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Footer: fixed with back button */}
+  {/* Shared footer */}
+  <FooterRectangle isOrdersScreen />
     </SafeAreaView>
   )
 };
@@ -209,7 +219,31 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     width: '100%',
-    zIndex: 10,
+  zIndex: 50,
+  elevation: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: -4 },
+  shadowOpacity: 0.12,
+  shadowRadius: 8,
+  },
+  footerBackBtn: {
+    paddingHorizontal: width * 0.04,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+  footerBackContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  footerBackIcon: {
+    width: width * 0.05,
+    height: width * 0.05,
+  },
+  footerBackText: {
+    fontSize: width * 0.04,
+    fontWeight: '700',
   },
   titleLine: {
   width: '100%',
@@ -218,15 +252,17 @@ const styles = StyleSheet.create({
   marginBottom: width * 0.06,
   },
   scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: '#F5F5F5',
-    paddingBottom: 24,
+  flexGrow: 1,
+  backgroundColor: '#F5F5F5',
+  paddingHorizontal: width * 0.05,
+  paddingTop: width * 0.04,
+  paddingBottom: 96,
   },
   container: {
-    paddingHorizontal: width * 0.05,
-    paddingTop: width * 0.04,
-  paddingBottom: 24, // bottom padding
-    backgroundColor: '#F5F5F5',
+  paddingHorizontal: 0,
+  paddingTop: 0,
+  paddingBottom: 0,
+  backgroundColor: '#F5F5F5',
   },
   root: {
     flex: 1,

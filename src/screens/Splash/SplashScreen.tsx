@@ -1,10 +1,12 @@
 // SplashScreen.js
 // Splash screen UI
 import React, { useEffect, useState } from 'react';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { Animated, Image, StyleSheet, View } from 'react-native';
 
 export default function SplashScreen() {
   const [logo1Position] = useState(new Animated.Value(-200)); // Start off-screen to the left
+  const bg = useThemeColor({}, 'background');
 
   useEffect(() => {
     Animated.timing(logo1Position, {
@@ -15,7 +17,7 @@ export default function SplashScreen() {
   }, [logo1Position]);
 
   return (
-    <View style={styles.container}>
+  <View style={[styles.container, { backgroundColor: bg }] }>
       <Image
         source={require('../../../assets/icons/Logo2.png')}
         style={styles.logo}
@@ -37,7 +39,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9F9F9',
   },
   logo: {
     width: 132,
