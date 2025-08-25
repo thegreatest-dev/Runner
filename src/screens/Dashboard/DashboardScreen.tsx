@@ -54,14 +54,14 @@ export default function DashboardScreen() {
   const bgColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const iconColor = useThemeColor({}, 'icon');
-  // service button backgrounds should adapt to theme so text stays readable
+  //
   const serviceBg = themeHook.preference === 'dark' ? '#1B1B1B' : '#FFFFFF';
   const activeBg = themeHook.preference === 'dark' ? '#163823' : '#E6F7ED';
   const serviceBorderColor = themeHook.preference === 'dark' ? 'transparent' : '#EEE';
   const rnAnimRef = useRef(new RNAnimated.Value(0));
   const rnAnim = rnAnimRef.current;
   useEffect(() => {
-    // Animate knob to correct position based on scaled pill sizes
+    
     const horizontalPadding = Math.round(5 * SCALE);
     const halfSpace = (pillWidth - pillKnobSize) / 2;
     const distance = Math.max(6, Math.round(halfSpace - horizontalPadding));
@@ -74,12 +74,12 @@ export default function DashboardScreen() {
   const handleServicePress = (key: string, route?: string) => {
     // show active state immediately
     setSelectedService(key);
-    // wait a short moment so the active visual appears, then navigate (if provided)
+   
     setTimeout(() => {
       if (route) {
         (navigation as any).navigate(route);
       }
-      // clear active state after navigation/brief delay
+      // clear active state after navigation
       setTimeout(() => setSelectedService(null), 250);
     }, 120);
   };
@@ -135,13 +135,13 @@ export default function DashboardScreen() {
     }
   }, [chatVisible, pan]);
 
-  // Open chat bottom sheet when navigated to Dashboard with { openChat: true }
+  // 
   useEffect(() => {
     try {
       const open = (route.params as any)?.openChat;
       if (open) {
         setChatVisible(true);
-        // clear param so it doesn't open again
+        // clear
         setTimeout(() => {
           (navigation as any).setParams({ openChat: false });
         }, 50);
@@ -157,7 +157,7 @@ export default function DashboardScreen() {
   {/* Logo spelled out */}
   <Text style={[styles.logoText, { color: textColor }]}>Errandly</Text>
 
-        {/* Dark mode toggle (custom pill) */}
+        {/* Dark mode*/}
         <TouchableOpacity
           activeOpacity={0.9}
           style={styles.pillWrap}
@@ -184,9 +184,7 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Header Image: use an outer shadow wrapper and an inner clipped mask so
-          the rounded corners are preserved while the shadow remains visible. Also
-          use full-width relative sizing so the container respects horizontal padding. */}
+      {/* Header Image */}
       <View style={[styles.headerShadowWrap, { height: height * 0.26 }]}> 
         <View style={[styles.headerMask, { height: '100%' }]}> 
           <Image
@@ -461,7 +459,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
   fontSize: logoFontSize,
-  // Use Poppins SemiBold for the Errandly header; ensure the font is loaded in the app
+  // Use Poppins 
   fontFamily: 'Poppins-SemiBold',
   fontWeight: '600',
     marginLeft: 8,
